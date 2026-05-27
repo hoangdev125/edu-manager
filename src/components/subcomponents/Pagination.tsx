@@ -22,16 +22,16 @@ export const Pagination: React.FC<PaginationProps> = ({
   const endRange = Math.min(totalItems, currentPage * itemsPerPage);
 
   return (
-    <div className="pagination">
-      <span className="pagination-info">
-        Hiển thị <strong>{startRange}</strong> đến{' '}
-        <strong>{endRange}</strong> trong tổng số{' '}
-        <strong>{totalItems}</strong> sinh viên
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-border-color">
+      <span className="text-xs sm:text-sm text-text-secondary">
+        Hiển thị <strong className="font-semibold text-text-primary">{startRange}</strong> đến{' '}
+        <strong className="font-semibold text-text-primary">{endRange}</strong> trong tổng số{' '}
+        <strong className="font-semibold text-text-primary">{totalItems}</strong> sinh viên
       </span>
 
-      <div className="pagination-buttons">
+      <div className="flex gap-2">
         <button 
-          className="page-btn" 
+          className="w-9 h-9 rounded-lg border border-border-color bg-bg-secondary text-text-primary flex items-center justify-center cursor-pointer transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:enabled:bg-input-bg hover:enabled:border-text-muted" 
           onClick={() => onPageChange(Math.max(1, currentPage - 1))}
           disabled={currentPage === 1}
           title="Trang trước"
@@ -42,7 +42,11 @@ export const Pagination: React.FC<PaginationProps> = ({
         {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
           <button 
             key={page}
-            className={`page-btn ${currentPage === page ? 'active' : ''}`}
+            className={`min-w-[36px] h-9 px-2 rounded-lg border flex items-center justify-center cursor-pointer font-medium text-xs sm:text-sm transition-all duration-200 ${
+              currentPage === page 
+                ? 'bg-accent-gradient text-white border-transparent shadow-sm' 
+                : 'border-border-color bg-bg-secondary text-text-primary hover:bg-input-bg hover:border-text-muted'
+            }`}
             onClick={() => onPageChange(page)}
           >
             {page}
@@ -50,7 +54,7 @@ export const Pagination: React.FC<PaginationProps> = ({
         ))}
         
         <button 
-          className="page-btn" 
+          className="w-9 h-9 rounded-lg border border-border-color bg-bg-secondary text-text-primary flex items-center justify-center cursor-pointer transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:enabled:bg-input-bg hover:enabled:border-text-muted" 
           onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
           disabled={currentPage === totalPages}
           title="Trang sau"

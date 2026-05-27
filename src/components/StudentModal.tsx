@@ -3,6 +3,10 @@ import { useStudents } from '../context/StudentContext';
 import type { Student, Grade } from '../types/student';
 import { departments, classes } from '../mockData';
 import { X } from 'lucide-react';
+import { PersonalFields } from './subcomponents/PersonalFields';
+import { ContactFields } from './subcomponents/ContactFields';
+import { AcademicFields } from './subcomponents/AcademicFields';
+import { GradeEntryFields } from './subcomponents/GradeEntryFields';
 
 interface StudentModalProps {
   mode: 'add' | 'edit';
@@ -75,11 +79,10 @@ export const StudentModal: React.FC<StudentModalProps> = ({ mode, student, onClo
     }
   }, [mode, student]);
 
-  // Handle department change to match default classes (optional visual helper)
+  // Handle department change to match default classes
   const handleDeptChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const dept = e.target.value;
     setDepartment(dept);
-    // Auto shift class prefix to match department for nice demo data
     if (dept === 'Công nghệ thông tin') setClassName('CNTT-01-K15');
     else if (dept === 'Kinh tế đối ngoại') setClassName('KTDN-02-K15');
     else if (dept === 'Điện tử viễn thông') setClassName('DTVT-01-K14');
@@ -94,8 +97,6 @@ export const StudentModal: React.FC<StudentModalProps> = ({ mode, student, onClo
     if (mode === 'add') {
       if (!id.trim()) {
         tempErrors.id = 'Mã số sinh viên (MSSV) không được trống';
-      } else if (!/^SV\d{3,5}$/i.test(id.trim())) {
-        tempErrors.id = 'MSSV phải có dạng SVxxx (Ví dụ: SV011)';
       } else if (students.some(s => s.id.toUpperCase() === id.trim().toUpperCase())) {
         tempErrors.id = 'MSSV này đã tồn tại trong hệ thống';
       }
@@ -124,9 +125,9 @@ export const StudentModal: React.FC<StudentModalProps> = ({ mode, student, onClo
     }
 
     // Validate grades
-    const scoreVal = (val: number, name: string) => {
+    const scoreVal = (val: number, fieldName: string) => {
       if (val < 0 || val > 10 || isNaN(val)) {
-        tempErrors[name] = 'Điểm số phải từ 0 đến 10';
+        tempErrors[fieldName] = 'Điểm số phải từ 0 đến 10';
       }
     };
     scoreVal(scoreOop, 'oop');
@@ -153,8 +154,7 @@ export const StudentModal: React.FC<StudentModalProps> = ({ mode, student, onClo
       { subject: 'Mạng máy tính', score: Number(scoreNet) }
     ];
 
-    // Compute GPA (out of 4.0 system for simplicity, normalized from 10 points)
-    // Avg out of 10, then convert to 4.0 scale by multiplying by 0.4
+    // Compute GPA (out of 10, converted to 4.0 by multiplying by 0.4)
     const avgScore10 = grades.reduce((sum, g) => sum + g.score, 0) / grades.length;
     const computedGpa = parseFloat(((avgScore10 / 10) * 4).toFixed(2));
 
@@ -190,285 +190,102 @@ export const StudentModal: React.FC<StudentModalProps> = ({ mode, student, onClo
   };
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-window">
-        <div className="modal-header">
-          <h3 className="modal-title">
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[200] p-4 animation-fadeIn">
+      <div className="bg-bg-secondary border border-border-color rounded-3xl w-full max-w-[800px] max-h-[90vh] shadow-lg flex flex-col overflow-hidden animation-scaleUp">
+        <div className="p-5 border-b border-border-color flex items-center justify-between">
+          <h3 className="text-lg font-bold text-text-primary font-title">
             {mode === 'add' ? 'Thêm mới sinh viên' : 'Chỉnh sửa thông tin sinh viên'}
           </h3>
-          <button className="close-btn" onClick={onClose}>
+          <button 
+            className="w-9 h-9 rounded-full flex items-center justify-center text-text-muted hover:bg-input-bg hover:text-text-primary transition-all duration-200 cursor-pointer" 
+            onClick={onClose}
+          >
             <X size={20} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
-          <div className="modal-body">
-            <div className="form-grid">
+        <form onSubmit={handleSubmit} className="flex flex-col h-full overflow-hidden">
+          <div className="p-6 overflow-y-auto flex-1">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               
-              {/* Profile details section */}
-              <h4 className="form-group full-width" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '8px', marginBottom: '8px', color: 'var(--primary)' }}>
-                1. Thông tin cá nhân
-              </h4>
+              {/* Personal Information */}
+              <PersonalFields 
+                id={id}
+                setId={setId}
+                name={name}
+                setName={setName}
+                gender={gender}
+                setGender={setGender}
+                dob={dob}
+                setDob={setDob}
+                errors={errors}
+                isEditMode={mode === 'edit'}
+              />
 
-              {/* MSSV */}
-              <div className="form-group">
-                <label className="form-label">Mã số sinh viên (MSSV) *</label>
-                <input 
-                  type="text" 
-                  value={id}
-                  onChange={(e) => setId(e.target.value)}
-                  disabled={mode === 'edit'}
-                  placeholder="Ví dụ: SV011"
-                  className="form-input"
-                  style={{ textTransform: 'uppercase' }}
-                />
-                {errors.id && <span className="error-text">{errors.id}</span>}
-              </div>
+              {/* Contact Information */}
+              <ContactFields 
+                email={email}
+                setEmail={setEmail}
+                phone={phone}
+                setPhone={setPhone}
+                address={address}
+                setAddress={setAddress}
+                errors={errors}
+              />
 
-              {/* Họ tên */}
-              <div className="form-group">
-                <label className="form-label">Họ và Tên *</label>
-                <input 
-                  type="text" 
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Ví dụ: Nguyễn Văn A"
-                  className="form-input"
-                />
-                {errors.name && <span className="error-text">{errors.name}</span>}
-              </div>
+              {/* Academic Registration */}
+              <AcademicFields 
+                department={department}
+                className={className}
+                setClassName={setClassName}
+                status={status}
+                setStatus={setStatus}
+                avatar={avatar}
+                setAvatar={setAvatar}
+                handleDeptChange={handleDeptChange}
+              />
 
-              {/* Giới tính */}
-              <div className="form-group">
-                <label className="form-label">Giới tính *</label>
-                <select 
-                  value={gender} 
-                  onChange={(e) => setGender(e.target.value as any)}
-                  className="form-input"
-                >
-                  <option value="Nam">Nam</option>
-                  <option value="Nữ">Nữ</option>
-                  <option value="Khác">Khác</option>
-                </select>
-              </div>
-
-              {/* Ngày sinh */}
-              <div className="form-group">
-                <label className="form-label">Ngày sinh *</label>
-                <input 
-                  type="date" 
-                  value={dob}
-                  onChange={(e) => setDob(e.target.value)}
-                  className="form-input"
-                />
-                {errors.dob && <span className="error-text">{errors.dob}</span>}
-              </div>
-
-              {/* Contact section */}
-              <h4 className="form-group full-width" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '8px', marginTop: '12px', marginBottom: '8px', color: 'var(--primary)' }}>
-                2. Thông tin liên hệ
-              </h4>
-
-              {/* Email */}
-              <div className="form-group">
-                <label className="form-label">Email *</label>
-                <input 
-                  type="email" 
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="username@student.edu.vn"
-                  className="form-input"
-                />
-                {errors.email && <span className="error-text">{errors.email}</span>}
-              </div>
-
-              {/* Số điện thoại */}
-              <div className="form-group">
-                <label className="form-label">Số điện thoại *</label>
-                <input 
-                  type="text" 
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="Ví dụ: 0987654321"
-                  className="form-input"
-                />
-                {errors.phone && <span className="error-text">{errors.phone}</span>}
-              </div>
-
-              {/* Địa chỉ */}
-              <div className="form-group full-width">
-                <label className="form-label">Địa chỉ cư trú *</label>
-                <input 
-                  type="text" 
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  placeholder="Số nhà, Tên đường, Quận/Huyện, Tỉnh/Thành phố"
-                  className="form-input"
-                />
-                {errors.address && <span className="error-text">{errors.address}</span>}
-              </div>
-
-              {/* Academic section */}
-              <h4 className="form-group full-width" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '8px', marginTop: '12px', marginBottom: '8px', color: 'var(--primary)' }}>
-                3. Đăng ký Học tập & Trạng thái
-              </h4>
-
-              {/* Khoa */}
-              <div className="form-group">
-                <label className="form-label">Khoa / Ban ngành *</label>
-                <select 
-                  value={department} 
-                  onChange={handleDeptChange}
-                  className="form-input"
-                >
-                  {departments.map((dept, idx) => (
-                    <option key={idx} value={dept}>{dept}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Lớp */}
-              <div className="form-group">
-                <label className="form-label">Lớp sinh hoạt *</label>
-                <select 
-                  value={className} 
-                  onChange={(e) => setClassName(e.target.value)}
-                  className="form-input"
-                >
-                  {classes.map((cls, idx) => (
-                    <option key={idx} value={cls}>{cls}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Trạng thái */}
-              <div className="form-group">
-                <label className="form-label">Trạng thái học tập *</label>
-                <select 
-                  value={status} 
-                  onChange={(e) => setStatus(e.target.value as any)}
-                  className="form-input"
-                >
-                  <option value="Đang học">Đang học</option>
-                  <option value="Bảo lưu">Bảo lưu</option>
-                  <option value="Đã tốt nghiệp">Đã tốt nghiệp</option>
-                </select>
-              </div>
-
-              {/* Link ảnh đại diện (nếu muốn thay đổi) */}
-              <div className="form-group">
-                <label className="form-label">Đường dẫn ảnh đại diện (URL)</label>
-                <input 
-                  type="text" 
-                  value={avatar}
-                  onChange={(e) => setAvatar(e.target.value)}
-                  placeholder="https://example.com/avatar.jpg"
-                  className="form-input"
-                />
-              </div>
-
-              {/* Điểm học tập các môn */}
-              <div className="form-group full-width" style={{ marginTop: '12px' }}>
-                <div className="grades-entry-container">
-                  <div className="grades-entry-title">4. Nhập điểm môn học (Thang điểm 10 - Hệ thống sẽ tự quy đổi ra GPA 4.0)</div>
-                  <div className="grades-grid">
-                    <div className="form-group" style={{ gap: '4px' }}>
-                      <label className="form-label" style={{ fontSize: '12px' }}>Lập trình hướng đối tượng (OOP)</label>
-                      <input 
-                        type="number" 
-                        step="0.1" 
-                        min="0" 
-                        max="10"
-                        value={scoreOop}
-                        onChange={(e) => setScoreOop(Number(e.target.value))}
-                        className="form-input"
-                        style={{ height: '38px' }}
-                      />
-                      {errors.oop && <span className="error-text">{errors.oop}</span>}
-                    </div>
-
-                    <div className="form-group" style={{ gap: '4px' }}>
-                      <label className="form-label" style={{ fontSize: '12px' }}>Cấu trúc dữ liệu & giải thuật (DSA)</label>
-                      <input 
-                        type="number" 
-                        step="0.1" 
-                        min="0" 
-                        max="10"
-                        value={scoreDsa}
-                        onChange={(e) => setScoreDsa(Number(e.target.value))}
-                        className="form-input"
-                        style={{ height: '38px' }}
-                      />
-                      {errors.dsa && <span className="error-text">{errors.dsa}</span>}
-                    </div>
-
-                    <div className="form-group" style={{ gap: '4px' }}>
-                      <label className="form-label" style={{ fontSize: '12px' }}>Cơ sở dữ liệu (DBMS)</label>
-                      <input 
-                        type="number" 
-                        step="0.1" 
-                        min="0" 
-                        max="10"
-                        value={scoreDb}
-                        onChange={(e) => setScoreDb(Number(e.target.value))}
-                        className="form-input"
-                        style={{ height: '38px' }}
-                      />
-                      {errors.db && <span className="error-text">{errors.db}</span>}
-                    </div>
-
-                    <div className="form-group" style={{ gap: '4px' }}>
-                      <label className="form-label" style={{ fontSize: '12px' }}>Toán rời rạc</label>
-                      <input 
-                        type="number" 
-                        step="0.1" 
-                        min="0" 
-                        max="10"
-                        value={scoreMath}
-                        onChange={(e) => setScoreMath(Number(e.target.value))}
-                        className="form-input"
-                        style={{ height: '38px' }}
-                      />
-                      {errors.math && <span className="error-text">{errors.math}</span>}
-                    </div>
-
-                    <div className="form-group" style={{ gap: '4px' }}>
-                      <label className="form-label" style={{ fontSize: '12px' }}>Mạng máy tính</label>
-                      <input 
-                        type="number" 
-                        step="0.1" 
-                        min="0" 
-                        max="10"
-                        value={scoreNet}
-                        onChange={(e) => setScoreNet(Number(e.target.value))}
-                        className="form-input"
-                        style={{ height: '38px' }}
-                      />
-                      {errors.net && <span className="error-text">{errors.net}</span>}
-                    </div>
-                  </div>
-                </div>
-              </div>
+              {/* Grades Table */}
+              <GradeEntryFields 
+                scoreOop={scoreOop}
+                setScoreOop={setScoreOop}
+                scoreDsa={scoreDsa}
+                setScoreDsa={setScoreDsa}
+                scoreDb={scoreDb}
+                setScoreDb={setScoreDb}
+                scoreMath={scoreMath}
+                setScoreMath={setScoreMath}
+                scoreNet={scoreNet}
+                setScoreNet={setScoreNet}
+                errors={errors}
+              />
 
               {/* Ghi chú */}
-              <div className="form-group full-width" style={{ marginTop: '12px' }}>
-                <label className="form-label">Ghi chú học tập / Nhận xét của giáo viên</label>
+              <div className="col-span-full flex flex-col gap-1.5 mt-4">
+                <label className="text-xs font-semibold text-text-secondary">Ghi chú học tập / Nhận xét của giáo viên</label>
                 <textarea 
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Đặc điểm học lực, kỷ luật, giải thưởng đạt được..."
-                  className="form-textarea"
+                  className="w-full min-h-[80px] p-3 rounded-xl border border-border-color bg-input-bg text-text-primary text-sm focus:outline-none focus:border-input-focus-border focus:bg-bg-secondary transition-all duration-200"
                 />
               </div>
 
             </div>
           </div>
 
-          <div className="modal-footer">
-            <button type="button" className="btn btn-secondary" onClick={onClose}>
+          <div className="p-5 border-t border-border-color flex justify-end gap-3 shrink-0">
+            <button 
+              type="button" 
+              className="h-11 px-5 rounded-xl font-semibold bg-bg-secondary border border-border-color text-text-primary hover:bg-input-bg transition-colors duration-200 cursor-pointer text-sm" 
+              onClick={onClose}
+            >
               Hủy bỏ
             </button>
-            <button type="submit" className="btn btn-primary">
+            <button 
+              type="submit" 
+              className="h-11 px-5 rounded-xl font-semibold bg-accent-gradient text-white hover:brightness-110 active:translate-y-0 transition-all duration-200 cursor-pointer text-sm"
+            >
               {mode === 'add' ? 'Lưu sinh viên' : 'Cập nhật'}
             </button>
           </div>

@@ -18,24 +18,30 @@ export const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-window small">
-        <div className="modal-header">
-          <h3 className="modal-title">Xác nhận xóa</h3>
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[200] p-4 animation-fadeIn">
+      <div className="bg-bg-secondary border border-border-color rounded-3xl w-full max-w-[480px] shadow-lg flex flex-col overflow-hidden animation-scaleUp">
+        <div className="p-5 border-b border-border-color flex items-center justify-between">
+          <h3 className="text-lg font-bold text-text-primary">Xác nhận xóa</h3>
         </div>
-        <div className="modal-body">
+        <div className="p-6 flex-1 text-sm text-text-primary leading-relaxed">
           <p>
-            Bạn có chắc chắn muốn xóa sinh viên <strong>{studentName}</strong> (MSSV: <strong>{studentId}</strong>) ra khỏi hệ thống?
+            Bạn có chắc chắn muốn xóa sinh viên <strong className="font-semibold">{studentName}</strong> (MSSV: <strong className="font-semibold text-primary">{studentId}</strong>) ra khỏi hệ thống?
           </p>
-          <p style={{ color: '#ef4444', fontSize: '12px', marginTop: '8px', fontWeight: 500 }}>
+          <p className="text-[#ef4444] text-xs mt-3 font-semibold bg-red-500/10 p-2.5 rounded-lg border border-red-500/20">
             Hành động này không thể hoàn tác.
           </p>
         </div>
-        <div className="modal-footer">
-          <button className="btn btn-secondary" onClick={onClose}>
+        <div className="p-5 border-t border-border-color flex justify-end gap-3">
+          <button 
+            className="h-11 px-5 rounded-xl font-semibold bg-bg-secondary border border-border-color text-text-primary hover:bg-input-bg transition-colors duration-200 cursor-pointer text-sm" 
+            onClick={onClose}
+          >
             Hủy bỏ
           </button>
-          <button className="btn btn-danger" onClick={onConfirm}>
+          <button 
+            className="h-11 px-5 rounded-xl font-semibold bg-[#ef4444] text-white hover:bg-[#dc2626] transition-colors duration-200 cursor-pointer text-sm" 
+            onClick={onConfirm}
+          >
             Xóa bỏ
           </button>
         </div>

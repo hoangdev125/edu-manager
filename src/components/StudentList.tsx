@@ -1,25 +1,18 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useStudents } from '../context/StudentContext';
 import type { Student } from '../types/student';
-import { departments, classes } from '../mockData';
+import { StudentFilters } from './subcomponents/StudentFilters';
+import { StudentTable } from './subcomponents/StudentTable';
+import { Pagination } from './subcomponents/Pagination';
+import { DeleteConfirmModal } from './subcomponents/DeleteConfirmModal';
 import { StudentModal } from './StudentModal';
 import { StudentDetail } from './StudentDetail';
-import { 
-  Search, 
-  Plus, 
-  Edit, 
-  Trash2, 
-  Eye, 
-  ArrowUpDown, 
-  ChevronLeft, 
-  ChevronRight,
-  GraduationCap
-} from 'lucide-react';
+import { GraduationCap, Plus } from 'lucide-react';
 
 export const StudentList: React.FC = () => {
   const { students, deleteStudent } = useStudents();
   
-  // Search & Filter state
+  // Search & Filter state (parent state is updated after debounce from subcomponent)
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDept, setSelectedDept] = useState('');
   const [selectedClass, setSelectedClass] = useState('');
@@ -45,7 +38,7 @@ export const StudentList: React.FC = () => {
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [studentToDelete, setStudentToDelete] = useState<Student | null>(null);
 
-  // 1. Sort Handler
+  // Sort Handler
   const handleSort = (field: 'name' | 'id' | 'gpa') => {
     if (sortField === field) {
       setSortDirection(prev => (prev === 'asc' ? 'desc' : 'asc'));
@@ -55,7 +48,12 @@ export const StudentList: React.FC = () => {
     }
   };
 
-  // 2. Filter & Search Logic
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedDept, selectedClass, selectedStatus, selectedGpaRange]);
+
+  // Filter & Search Logic
   const filteredStudents = useMemo(() => {
     let result = [...students];
 
@@ -109,12 +107,7 @@ export const StudentList: React.FC = () => {
     return result;
   }, [students, searchTerm, selectedDept, selectedClass, selectedStatus, selectedGpaRange, sortField, sortDirection]);
 
-  // Reset page when filters change
-  React.useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm, selectedDept, selectedClass, selectedStatus, selectedGpaRange]);
-
-  // 3. Pagination Logic
+  // Pagination Logic
   const paginatedStudents = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     return filteredStudents.slice(startIndex, startIndex + itemsPerPage);
@@ -122,7 +115,7 @@ export const StudentList: React.FC = () => {
 
   const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
 
-  // 4. Modal Triggers
+  // Modal Triggers
   const openAddModal = () => {
     setModalMode('add');
     setSelectedStudent(undefined);
@@ -153,249 +146,56 @@ export const StudentList: React.FC = () => {
     }
   };
 
-  const getGpaClass = (gpa: number) => {
-    if (gpa >= 3.6) return 'excellent';
-    if (gpa >= 3.2) return 'good';
-    if (gpa >= 2.5) return 'average';
-    return 'poor';
-  };
-
-  const getGpaLabel = (gpa: number) => {
-    if (gpa >= 3.6) return 'Xuất sắc';
-    if (gpa >= 3.2) return 'Khá';
-    if (gpa >= 2.5) return 'T.Bình';
-    return 'Yếu';
-  };
-
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      <div className="glass-card">
-        {/* Controls Row */}
-        <div className="controls-row">
-          <div className="search-wrapper">
-            <Search size={20} className="search-icon-svg" />
-            <input 
-              type="text" 
-              placeholder="Tìm kiếm sinh viên theo tên hoặc MSSV..." 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="search-input"
-            />
-          </div>
+    <div className="flex flex-col gap-6">
+      {/* Student Filters */}
+      <StudentFilters 
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        selectedDept={selectedDept}
+        setSelectedDept={setSelectedDept}
+        selectedClass={selectedClass}
+        setSelectedClass={setSelectedClass}
+        selectedGpaRange={selectedGpaRange}
+        setSelectedGpaRange={setSelectedGpaRange}
+        selectedStatus={selectedStatus}
+        setSelectedStatus={setSelectedStatus}
+        onAddClick={openAddModal}
+      />
 
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <button className="btn btn-primary" onClick={openAddModal}>
-              <Plus size={18} />
-              Thêm sinh viên
-            </button>
-          </div>
+      {/* Main Content Area */}
+      {filteredStudents.length > 0 ? (
+        <div className="flex flex-col gap-4">
+          <StudentTable 
+            students={paginatedStudents}
+            sortField={sortField}
+            sortDirection={sortDirection}
+            onSort={handleSort}
+            onView={openDetailModal}
+            onEdit={openEditModal}
+            onDelete={triggerDelete}
+          />
+          <Pagination 
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={filteredStudents.length}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+          />
         </div>
-
-        {/* Filters Row */}
-        <div className="controls-row" style={{ marginTop: '-12px', borderBottom: '1px solid var(--border-color)', paddingBottom: '20px' }}>
-          <div className="filters-wrapper">
-            {/* Dept Filter */}
-            <select 
-              value={selectedDept} 
-              onChange={(e) => setSelectedDept(e.target.value)}
-              className="select-filter"
-            >
-              <option value="">Tất cả các Khoa</option>
-              {departments.map((dept, idx) => (
-                <option key={idx} value={dept}>{dept}</option>
-              ))}
-            </select>
-
-            {/* Class Filter */}
-            <select 
-              value={selectedClass} 
-              onChange={(e) => setSelectedClass(e.target.value)}
-              className="select-filter"
-            >
-              <option value="">Tất cả lớp học</option>
-              {classes.map((cls, idx) => (
-                <option key={idx} value={cls}>{cls}</option>
-              ))}
-            </select>
-
-            {/* GPA Filter */}
-            <select 
-              value={selectedGpaRange} 
-              onChange={(e) => setSelectedGpaRange(e.target.value)}
-              className="select-filter"
-            >
-              <option value="">Tất cả học lực (GPA)</option>
-              <option value="excellent">Xuất sắc (&gt;= 3.6)</option>
-              <option value="good">Khá (3.2 - 3.59)</option>
-              <option value="average">Trung bình (2.5 - 3.19)</option>
-              <option value="poor">Yếu (&lt; 2.5)</option>
-            </select>
-
-            {/* Status Filter */}
-            <select 
-              value={selectedStatus} 
-              onChange={(e) => setSelectedStatus(e.target.value)}
-              className="select-filter"
-            >
-              <option value="">Tất cả trạng thái</option>
-              <option value="Đang học">Đang học</option>
-              <option value="Bảo lưu">Bảo lưu</option>
-              <option value="Đã tốt nghiệp">Đã tốt nghiệp</option>
-            </select>
-          </div>
-
-          {(selectedDept || selectedClass || selectedStatus || selectedGpaRange || searchTerm) && (
-            <button 
-              className="btn btn-secondary" 
-              style={{ height: '48px' }}
-              onClick={() => {
-                setSearchTerm('');
-                setSelectedDept('');
-                setSelectedClass('');
-                setSelectedStatus('');
-                setSelectedGpaRange('');
-              }}
-            >
-              Xóa bộ lọc
-            </button>
-          )}
-        </div>
-
-        {/* Data Table */}
-        {filteredStudents.length > 0 ? (
-          <>
-            <div className="table-responsive">
-              <table className="modern-table">
-                <thead>
-                  <tr>
-                    <th className="sortable" onClick={() => handleSort('id')} style={{ width: '120px' }}>
-                      MSSV <ArrowUpDown size={14} style={{ marginLeft: '4px', display: 'inline-block', verticalAlign: 'middle' }} />
-                    </th>
-                    <th className="sortable" onClick={() => handleSort('name')}>
-                      Họ và Tên <ArrowUpDown size={14} style={{ marginLeft: '4px', display: 'inline-block', verticalAlign: 'middle' }} />
-                    </th>
-                    <th>Lớp học / Khoa</th>
-                    <th className="sortable" onClick={() => handleSort('gpa')} style={{ width: '120px' }}>
-                      GPA <ArrowUpDown size={14} style={{ marginLeft: '4px', display: 'inline-block', verticalAlign: 'middle' }} />
-                    </th>
-                    <th style={{ width: '150px' }}>Trạng thái</th>
-                    <th style={{ width: '160px', textAlign: 'center' }}>Thao tác</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedStudents.map((student) => (
-                    <tr key={student.id}>
-                      <td style={{ fontWeight: 600, color: 'var(--primary)' }}>{student.id}</td>
-                      <td>
-                        <div className="student-row-info">
-                          <img 
-                            src={student.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(student.name)}`} 
-                            alt={student.name} 
-                            className="student-table-avatar"
-                          />
-                          <div>
-                            <div className="student-name-text">{student.name}</div>
-                            <div className="student-sub-text">{student.email}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        <div style={{ fontWeight: 500 }}>{student.className}</div>
-                        <div className="student-sub-text" style={{ fontSize: '11px' }}>{student.department}</div>
-                      </td>
-                      <td>
-                        <span className={`gpa-badge ${getGpaClass(student.gpa)}`}>
-                          {student.gpa.toFixed(2)} - {getGpaLabel(student.gpa)}
-                        </span>
-                      </td>
-                      <td>
-                        <span className={`status-badge ${student.status.toLowerCase().replace(' ', '-')}`}>
-                          {student.status}
-                        </span>
-                      </td>
-                      <td>
-                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                          <button 
-                            className="btn btn-secondary btn-icon" 
-                            style={{ width: '32px', height: '32px' }}
-                            title="Xem chi tiết"
-                            onClick={() => openDetailModal(student.id)}
-                          >
-                            <Eye size={14} />
-                          </button>
-                          <button 
-                            className="btn btn-secondary btn-icon" 
-                            style={{ width: '32px', height: '32px' }}
-                            title="Chỉnh sửa"
-                            onClick={() => openEditModal(student)}
-                          >
-                            <Edit size={14} style={{ color: 'var(--primary)' }} />
-                          </button>
-                          <button 
-                            className="btn btn-secondary btn-icon" 
-                            style={{ width: '32px', height: '32px' }}
-                            title="Xóa sinh viên"
-                            onClick={() => triggerDelete(student)}
-                          >
-                            <Trash2 size={14} style={{ color: '#ef4444' }} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Pagination Row */}
-            <div className="pagination">
-              <span className="pagination-info">
-                Hiển thị <strong>{Math.min(filteredStudents.length, (currentPage - 1) * itemsPerPage + 1)}</strong> đến{' '}
-                <strong>{Math.min(filteredStudents.length, currentPage * itemsPerPage)}</strong> trong tổng số{' '}
-                <strong>{filteredStudents.length}</strong> sinh viên
-              </span>
-
-              {totalPages > 1 && (
-                <div className="pagination-buttons">
-                  <button 
-                    className="page-btn" 
-                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                    disabled={currentPage === 1}
-                  >
-                    <ChevronLeft size={16} />
-                  </button>
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                    <button 
-                      key={page}
-                      className={`page-btn ${currentPage === page ? 'active' : ''}`}
-                      onClick={() => setCurrentPage(page)}
-                    >
-                      {page}
-                    </button>
-                  ))}
-                  <button 
-                    className="page-btn" 
-                    onClick={() => setCurrentPage(prev => Math.max(totalPages, prev + 1))}
-                    disabled={currentPage === totalPages}
-                  >
-                    <ChevronRight size={16} />
-                  </button>
-                </div>
-              )}
-            </div>
-          </>
-        ) : (
-          <div className="empty-state">
-            <GraduationCap size={48} className="empty-state-icon" />
-            <h4 className="empty-state-title">Không tìm thấy sinh viên nào</h4>
-            <p className="empty-state-desc">Hãy thử thay đổi điều kiện tìm kiếm hoặc thêm sinh viên mới.</p>
-            <button className="btn btn-primary" onClick={openAddModal}>
+      ) : (
+        <div className="p-12 rounded-2xl bg-card-bg backdrop-blur-[20px] border border-card-border shadow-md hover:bg-card-hover-bg transition-all duration-300 flex items-center justify-center">
+          <div className="flex flex-col items-center justify-center text-center gap-3 max-w-sm">
+            <GraduationCap size={48} className="text-text-muted opacity-40 animate-pulse" />
+            <h4 className="font-title font-bold text-base text-text-primary">Không tìm thấy sinh viên nào</h4>
+            <p className="text-xs text-text-secondary">Hãy thử thay đổi điều kiện tìm kiếm hoặc thêm sinh viên mới.</p>
+            <button className="h-10 px-5 rounded-xl font-semibold bg-accent-gradient text-white hover:brightness-110 active:translate-y-0 transition-all duration-200 cursor-pointer text-xs mt-2 inline-flex items-center gap-2" onClick={openAddModal}>
               <Plus size={16} />
               Thêm sinh viên mới
             </button>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* CRUD Add/Edit Modal */}
       {isModalOpen && (
@@ -416,21 +216,13 @@ export const StudentList: React.FC = () => {
 
       {/* Delete Confirmation Modal */}
       {isDeleteConfirmOpen && studentToDelete && (
-        <div className="modal-overlay">
-          <div className="modal-window small">
-            <div className="modal-header">
-              <h3 className="modal-title">Xác nhận xóa</h3>
-            </div>
-            <div className="modal-body">
-              <p>Bạn có chắc chắn muốn xóa sinh viên <strong>{studentToDelete.name}</strong> (MSSV: <strong>{studentToDelete.id}</strong>) ra khỏi hệ thống?</p>
-              <p style={{ color: '#ef4444', fontSize: '12px', marginTop: '8px', fontWeight: 500 }}>Hành động này không thể hoàn tác.</p>
-            </div>
-            <div className="modal-footer">
-              <button className="btn btn-secondary" onClick={() => setIsDeleteConfirmOpen(false)}>Hủy bỏ</button>
-              <button className="btn btn-danger" onClick={confirmDelete}>Xóa bỏ</button>
-            </div>
-          </div>
-        </div>
+        <DeleteConfirmModal 
+          isOpen={isDeleteConfirmOpen}
+          studentName={studentToDelete.name}
+          studentId={studentToDelete.id}
+          onClose={() => setIsDeleteConfirmOpen(false)}
+          onConfirm={confirmDelete}
+        />
       )}
     </div>
   );

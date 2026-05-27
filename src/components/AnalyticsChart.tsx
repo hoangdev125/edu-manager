@@ -10,13 +10,9 @@ export const AnalyticsChart: React.FC<AnalyticsChartProps> = ({ students }) => {
 
   // 1. Calculate GPA distribution
   const gpaCategories = [
-    { label: "Xuất sắc (>=3.6)", count: 0, color: "var(--secondary)" },
-    { label: "Khá (3.2 - 3.59)", count: 0, color: "var(--primary)" },
-    {
-      label: "Trung bình (2.5 - 3.19)",
-      count: 0,
-      color: "var(--status-suspended-text)",
-    },
+    { label: "Xuất sắc (>=3.6)", count: 0, color: "#10b981" },
+    { label: "Khá (3.2 - 3.59)", count: 0, color: "#6366f1" },
+    { label: "Trung bình (2.5 - 3.19)", count: 0, color: "#f59e0b" },
     { label: "Yếu (< 2.5)", count: 0, color: "#ef4444" },
   ];
 
@@ -36,63 +32,33 @@ export const AnalyticsChart: React.FC<AnalyticsChartProps> = ({ students }) => {
   const deptCategories = Object.keys(deptDataMap).map((key) => ({
     label: key,
     count: deptDataMap[key],
-    color: "var(--primary)",
+    color: "#6366f1",
   }));
 
   const activeCategories = chartType === "gpa" ? gpaCategories : deptCategories;
   const maxCount = Math.max(...activeCategories.map((c) => c.count), 1);
 
   return (
-    <div
-      className="glass-card"
-      style={{ height: "100%", display: "flex", flexDirection: "column" }}
-    >
-      <div
-        className="card-header"
-        style={{
-          marginBottom: "32px",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          gap: "12px",
-          flexWrap: "wrap",
-        }}
-      >
-        <h3 className="card-title">Thống kê học tập</h3>
-        <div style={{ display: "flex", gap: "8px" }}>
+    <div className="p-6 rounded-2xl bg-card-bg backdrop-blur-[20px] border border-card-border shadow-md hover:bg-card-hover-bg transition-all duration-300 flex flex-col h-full">
+      <div className="flex justify-between items-center mb-6 gap-3 flex-wrap border-b border-border-color pb-4">
+        <h3 className="text-lg font-bold text-text-primary font-title">Thống kê học tập</h3>
+        <div className="flex gap-2">
           <button
-            className={`btn btn-secondary btn-icon`}
-            style={{
-              height: "32px",
-              fontSize: "12px",
-              padding: "0 12px",
-              backgroundColor:
-                chartType === "gpa" ? "var(--primary)" : "var(--bg-secondary)",
-              color: chartType === "gpa" ? "white" : "var(--text-primary)",
-              borderColor:
-                chartType === "gpa" ? "transparent" : "var(--border-color)",
-            }}
+            className={`h-8 px-4 text-xs font-semibold rounded-lg border transition-all duration-200 cursor-pointer ${
+              chartType === "gpa" 
+                ? "bg-primary border-transparent text-white" 
+                : "bg-bg-secondary border-border-color text-text-primary hover:bg-input-bg"
+            }`}
             onClick={() => setChartType("gpa")}
           >
             GPA
           </button>
           <button
-            className={`btn btn-secondary btn-icon`}
-            style={{
-              height: "32px",
-              fontSize: "12px",
-              padding: "0 12px",
-              backgroundColor:
-                chartType === "department"
-                  ? "var(--primary)"
-                  : "var(--bg-secondary)",
-              color:
-                chartType === "department" ? "white" : "var(--text-primary)",
-              borderColor:
-                chartType === "department"
-                  ? "transparent"
-                  : "var(--border-color)",
-            }}
+            className={`h-8 px-4 text-xs font-semibold rounded-lg border transition-all duration-200 cursor-pointer ${
+              chartType === "department" 
+                ? "bg-primary border-transparent text-white" 
+                : "bg-bg-secondary border-border-color text-text-primary hover:bg-input-bg"
+            }`}
             onClick={() => setChartType("department")}
           >
             Khoa
@@ -100,142 +66,54 @@ export const AnalyticsChart: React.FC<AnalyticsChartProps> = ({ students }) => {
         </div>
       </div>
 
-      {/* Bao bọc toàn bộ khu vực biểu đồ bao gồm cả trục Y */}
-      <div
-        style={{
-          flex: 1,
-          display: "flex",
-          gap: "16px",
-          minHeight: "260px",
-          paddingBottom: "20px",
-          position: "relative",
-        }}
-      >
-        {/* Trục Y: Đứng độc lập bên trái, phân bố đều theo chiều dọc */}
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "space-between",
-            color: "var(--text-muted)",
-            fontSize: "12px",
-            fontWeight: 500,
-            textAlign: "right",
-            width: "50px",
-            paddingBottom: "30px" /* Chừa khoảng trống ngang hàng với nhãn X */,
-          }}
-        >
+      {/* Chart Plot Row */}
+      <div className="flex gap-4 items-stretch h-[240px] pt-4">
+        {/* Y Axis */}
+        <div className="flex flex-col justify-between text-text-muted text-[10px] sm:text-xs font-semibold text-right w-12 pb-6 select-none">
           <span>{maxCount} SV</span>
           <span>{Math.round(maxCount / 2)} SV</span>
           <span>0 SV</span>
         </div>
 
-        {/* Khung chứa các cột đồ thị và đường Gridlines ẩn */}
-        <div
-          className="chart-container"
-          style={{
-            flex: 1,
-            position: "relative",
-            display: "flex",
-            justifyContent: "space-around",
-            alignItems:
-              "flex-end" /* Ép các cột xuất phát dựng đứng từ đáy lên */,
-            height: "calc(100% - 30px)" /* Trừ hao phần nhãn chữ bên dưới */,
-            borderBottom: "2px solid var(--border-color)",
-            padding: "0 10px",
-          }}
-        >
-          {/* Đường kẻ ngang background (Grid lines) */}
-          <div
-            style={{
-              position: "absolute",
-              left: 0,
-              right: 0,
-              top: 0,
-              bottom: 0,
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "space-between",
-              pointerEvents: "none",
-              zIndex: 1,
-            }}
-          >
-            <div
-              style={{
-                borderBottom: "1px dashed var(--border-color)",
-                width: "100%",
-                height: 0,
-              }}
-            />
-            <div
-              style={{
-                borderBottom: "1px dashed var(--border-color)",
-                width: "100%",
-                height: 0,
-              }}
-            />
-            <div style={{ width: "100%", height: 0 }} />
+        {/* Grid & Bars Container */}
+        <div className="flex-1 border-b-2 border-l border-border-color relative flex justify-around items-end px-2 pb-6 h-full">
+          
+          {/* Background Gridlines */}
+          <div className="absolute inset-0 flex flex-col justify-between pointer-events-none z-0 pb-6">
+            <div className="border-b border-dashed border-border-color w-full h-0" />
+            <div className="border-b border-dashed border-border-color w-full h-0" />
+            <div className="w-full h-0" />
           </div>
 
-          {/* Vòng lặp vẽ các Cột đồ thị */}
+          {/* Render Bars */}
           {activeCategories.map((cat, idx) => {
             const pct = (cat.count / maxCount) * 100;
             return (
               <div
                 key={idx}
-                className="chart-bar-group"
-                style={{
-                  zIndex: 2,
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "flex-end",
-                  height: "100%",
-                  position: "relative",
-                  flex: 1,
-                }}
+                className="group relative z-10 flex-1 flex flex-col items-center justify-end h-full"
               >
-                {/* Thanh cột màu của đồ thị */}
-                <div
-                  className="chart-bar"
-                  style={{
-                    height: `${pct}%`,
-                    width: "70%" /* Đảm bảo cột có bề ngang cố định rõ ràng */,
-                    maxWidth: "45px",
-                    borderRadius: "6px 6px 0 0",
-                    transition: "all 0.3s ease",
-                    cursor: "pointer",
-                    position: "relative",
-                    background: cat.color.includes("var(")
-                      ? cat.color
-                      : undefined,
-                    backgroundColor: !cat.color.includes("var(")
-                      ? cat.color
-                      : undefined,
-                  }}
-                >
-                  {/* Tooltip khi hover chuột vào cột */}
-                  <div className="chart-tooltip">
-                    {cat.label}: {cat.count} sinh viên (
-                    {Math.round((cat.count / (students.length || 1)) * 100)}%)
-                  </div>
+                {/* Tooltip */}
+                <div className="absolute -top-10 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 bg-bg-secondary border border-border-color text-text-primary text-[10px] font-bold px-2 py-1 rounded-md shadow-md transition-all duration-200 pointer-events-none whitespace-nowrap z-50">
+                  {cat.label}: {cat.count} sinh viên ({Math.round((cat.count / (students.length || 1)) * 100)}%)
                 </div>
 
-                {/* Nhãn text bên dưới mỗi chân cột */}
-                <span
-                  className="chart-label"
+                {/* Bar */}
+                <div
+                  className="rounded-t-md cursor-pointer transition-all duration-300 w-3/5 max-w-[45px] hover:brightness-110 shadow-sm"
                   style={{
-                    position: "absolute",
-                    bottom: "-25px",
-                    fontSize: chartType === "department" ? "10px" : "11px",
-                    whiteSpace: "nowrap",
-                    color: "var(--text-secondary)",
-                    fontWeight: 500,
+                    height: `${pct}%`,
+                    backgroundColor: cat.color,
                   }}
+                />
+
+                {/* X Label */}
+                <span
+                  className="absolute -bottom-6 text-text-secondary font-semibold text-[9px] sm:text-[10px] text-center whitespace-nowrap truncate max-w-[65px]"
+                  title={cat.label}
                 >
                   {chartType === "department"
-                    ? cat.label.substring(0, 12) +
-                      (cat.label.length > 12 ? ".." : "")
+                    ? cat.label.substring(0, 8) + (cat.label.length > 8 ? ".." : "")
                     : cat.label.split(" ")[0]}
                 </span>
               </div>

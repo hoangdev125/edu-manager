@@ -46,47 +46,47 @@ export const Dashboard: React.FC = () => {
       title: 'Tổng số sinh viên',
       value: stats.totalStudents,
       icon: Users,
-      colorClass: 'blue',
+      colorClass: 'from-blue-500 to-blue-700 shadow-[0_4px_12px_rgba(59,130,246,0.25)]',
       desc: 'Sinh viên đang quản lý'
     },
     {
       title: 'Số lớp học',
       value: stats.totalClasses,
       icon: BookOpen,
-      colorClass: 'teal',
+      colorClass: 'from-teal-500 to-teal-700 shadow-[0_4px_12px_rgba(20,184,166,0.25)]',
       desc: 'Các lớp thuộc các khoa'
     },
     {
       title: 'Điểm GPA trung bình',
       value: stats.averageGpa,
       icon: Award,
-      colorClass: 'purple',
+      colorClass: 'from-purple-500 to-purple-700 shadow-[0_4px_12px_rgba(168,85,247,0.25)]',
       desc: 'Thang điểm hệ 4.0'
     },
     {
       title: 'Tỷ lệ chuyên cần',
       value: `${stats.attendanceRate}%`,
       icon: Calendar,
-      colorClass: 'amber',
+      colorClass: 'from-amber-500 to-amber-700 shadow-[0_4px_12px_rgba(245,158,11,0.25)]',
       desc: 'Đánh giá điểm danh'
     }
   ];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+    <div className="flex flex-col gap-6">
       {/* Stat Cards Grid */}
-      <div className="stats-grid">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {statCards.map((card, idx) => {
           const Icon = card.icon;
           return (
-            <div key={idx} className="glass-card stat-card">
-              <div className={`stat-icon-wrapper ${card.colorClass}`}>
+            <div key={idx} className="p-6 rounded-2xl bg-card-bg backdrop-blur-[20px] border border-card-border shadow-md hover:bg-card-hover-bg hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex items-center gap-5">
+              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-white shrink-0 bg-gradient-to-br ${card.colorClass}`}>
                 <Icon size={24} />
               </div>
-              <div className="stat-data">
-                <span className="stat-title">{card.title}</span>
-                <span className="stat-value">{card.value}</span>
-                <span className="student-sub-text" style={{ fontSize: '11px' }}>{card.desc}</span>
+              <div className="flex flex-col">
+                <span className="text-xs sm:text-sm text-text-secondary font-semibold mb-1 font-body">{card.title}</span>
+                <span className="text-2xl sm:text-3xl font-extrabold text-text-primary font-title leading-none">{card.value}</span>
+                <span className="text-[10px] text-text-muted mt-1.5 font-medium">{card.desc}</span>
               </div>
             </div>
           );
@@ -94,44 +94,44 @@ export const Dashboard: React.FC = () => {
       </div>
 
       {/* Main Charts & Activity Row */}
-      <div className="dashboard-details-grid">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Analytics Chart */}
-        <div>
+        <div className="lg:col-span-2">
           <AnalyticsChart students={students} />
         </div>
 
         {/* Recent Activities Card */}
-        <div className="glass-card" style={{ display: 'flex', flexDirection: 'column' }}>
-          <div className="card-header">
-            <h3 className="card-title">
-              <Activity size={20} className="empty-state-icon" style={{ margin: 0, color: 'var(--primary)' }} />
+        <div className="p-6 rounded-2xl bg-card-bg backdrop-blur-[20px] border border-card-border shadow-md flex flex-col hover:bg-card-hover-bg transition-all duration-300">
+          <div className="flex items-center justify-between mb-5">
+            <h3 className="text-lg font-bold text-text-primary flex items-center gap-2 font-title">
+              <Activity size={20} className="text-primary" />
               Hoạt động gần đây
             </h3>
           </div>
 
-          <div style={{ flex: 1 }}>
+          <div className="flex-1">
             {recentActivities.length > 0 ? (
-              <div className="activity-list">
+              <div className="flex flex-col gap-4 max-h-[380px] overflow-y-auto pr-1">
                 {recentActivities.map((act) => (
-                  <div key={act.id} className="activity-item">
-                    <div className="activity-badge" />
-                    <div className="activity-content">
-                      <span className="activity-desc">
-                        <strong style={{ cursor: 'pointer', color: 'var(--primary)' }} onClick={() => setActiveTab('students')}>
+                  <div key={act.id} className="flex gap-3 pb-3 border-b border-dashed border-border-color last:border-b-0 last:pb-0">
+                    <div className="w-2 h-2 rounded-full bg-primary mt-1.5 shrink-0" />
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-xs sm:text-sm text-text-primary font-medium">
+                        <strong className="font-bold text-primary hover:underline cursor-pointer" onClick={() => setActiveTab('students')}>
                           {act.studentName}
                         </strong>{' '}
-                        - {act.action}
+                        {act.action}
                       </span>
-                      <span className="activity-time">{formatTime(act.timestamp)}</span>
+                      <span className="text-[10px] text-text-muted font-semibold mt-0.5">{formatTime(act.timestamp)}</span>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="empty-state" style={{ padding: '40px 0' }}>
-                <Activity size={32} className="empty-state-icon" />
-                <p className="empty-state-title" style={{ fontSize: '14px' }}>Không có hoạt động</p>
-                <p className="empty-state-desc" style={{ fontSize: '12px', margin: 0 }}>Các hành động sửa/xóa/thêm sẽ xuất hiện ở đây.</p>
+              <div className="flex flex-col items-center justify-center py-10 text-center gap-3">
+                <Activity size={32} className="text-text-muted opacity-40 animate-pulse" />
+                <p className="font-semibold text-xs sm:text-sm text-text-secondary">Không có hoạt động</p>
+                <p className="text-[11px] text-text-muted max-w-[200px]">Các hành động sửa/xóa/thêm sẽ xuất hiện ở đây.</p>
               </div>
             )}
           </div>
@@ -139,18 +139,18 @@ export const Dashboard: React.FC = () => {
       </div>
 
       {/* Quick Access Actions */}
-      <div className="glass-card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
+      <div className="p-6 rounded-2xl bg-card-bg backdrop-blur-[20px] border border-card-border shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:bg-card-hover-bg transition-all duration-300">
         <div>
-          <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '4px' }}>Truy cập nhanh</h3>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>Chuyển đổi nhanh đến các tính năng khác.</p>
+          <h3 className="text-base font-bold text-text-primary font-title mb-1">Truy cập nhanh</h3>
+          <p className="color-text-secondary text-xs sm:text-sm text-text-secondary font-medium">Chuyển đổi nhanh đến các tính năng khác.</p>
         </div>
-        <div style={{ display: 'flex', gap: '12px' }}>
-          <button className="btn btn-secondary" onClick={() => setActiveTab('classes')}>
+        <div className="flex gap-3 w-full sm:w-auto">
+          <button className="flex-1 sm:flex-none h-11 px-5 rounded-xl font-semibold bg-bg-secondary border border-border-color text-text-primary hover:bg-input-bg transition-colors duration-200 cursor-pointer text-xs sm:text-sm whitespace-nowrap" onClick={() => setActiveTab('classes')}>
             Xem danh sách lớp học
           </button>
-          <button className="btn btn-primary" onClick={() => setActiveTab('students')}>
+          <button className="flex-1 sm:flex-none h-11 px-5 rounded-xl font-semibold bg-accent-gradient text-white hover:brightness-110 hover:-translate-y-[1px] active:translate-y-0 transition-all duration-200 whitespace-nowrap cursor-pointer text-xs sm:text-sm inline-flex items-center justify-center gap-2" onClick={() => setActiveTab('students')}>
             <UserPlus size={16} />
-            Quản lý danh sách sinh viên
+            Quản lý sinh viên
           </button>
         </div>
       </div>

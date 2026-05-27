@@ -1,16 +1,27 @@
 import React from 'react';
 import { StudentProvider, useStudents } from './context/StudentContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
 import { Dashboard } from './components/Dashboard';
 import { StudentList } from './components/StudentList';
 import { ClassManager } from './components/ClassManager';
-import './App.css';
+import { Login } from './components/Login';
+import { StudentProfileView } from './components/StudentProfileView';
 
 const MainAppContent: React.FC = () => {
+  const { currentUser } = useAuth();
   const { activeTab } = useStudents();
 
+  if (!currentUser) {
+    return <Login />;
+  }
+
   const renderActiveTab = () => {
+    if (currentUser.role === 'student') {
+      return <StudentProfileView />;
+    }
+
     switch (activeTab) {
       case 'dashboard':
         return <Dashboard />;
@@ -24,12 +35,12 @@ const MainAppContent: React.FC = () => {
   };
 
   return (
-    <div className="app-container">
+    <div className="flex min-h-screen bg-bg-primary text-text-primary transition-colors duration-300">
       {/* Sidebar Navigation */}
       <Sidebar />
 
       {/* Main Panel */}
-      <main className="main-content">
+      <main className="flex-1 flex flex-col min-h-screen ml-[260px] max-[992px]:ml-[80px] max-[576px]:ml-0 p-6 md:p-8 max-[576px]:pt-[80px] transition-[margin] duration-300">
         {/* Dynamic Header */}
         <Header />
 
@@ -43,7 +54,9 @@ const MainAppContent: React.FC = () => {
 function App() {
   return (
     <StudentProvider>
-      <MainAppContent />
+      <AuthProvider>
+        <MainAppContent />
+      </AuthProvider>
     </StudentProvider>
   );
 }

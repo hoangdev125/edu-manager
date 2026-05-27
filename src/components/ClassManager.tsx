@@ -50,24 +50,24 @@ export const ClassManager: React.FC = () => {
   }, [classStats, searchTerm]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+    <div className="flex flex-col gap-6">
       
       {/* Header and search bar */}
-      <div className="glass-card">
-        <div className="controls-row" style={{ marginBottom: 0 }}>
-          <div className="search-wrapper">
-            <Search size={20} className="search-icon-svg" />
+      <div className="p-6 rounded-2xl bg-card-bg backdrop-blur-[20px] border border-card-border shadow-md hover:bg-card-hover-bg transition-all duration-300">
+        <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+          <div className="relative w-full sm:flex-1 min-w-[260px]">
+            <Search size={20} className="absolute left-4 top-[14px] text-text-muted pointer-events-none" />
             <input 
               type="text" 
               placeholder="Tìm kiếm lớp học hoặc khoa..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="search-input"
+              className="w-full h-12 pl-12 pr-4 rounded-xl border border-border-color bg-input-bg text-text-primary placeholder:text-text-muted focus:outline-none focus:border-input-focus-border focus:bg-bg-secondary focus:ring-3 focus:ring-primary-glow transition-all duration-200 text-sm"
             />
           </div>
           <div>
-            <span style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 500 }}>
-              Đang hiển thị <strong>{filteredClasses.length}</strong> lớp học tuyển sinh
+            <span className="text-xs sm:text-sm text-text-secondary font-semibold">
+              Đang hiển thị <strong className="font-bold text-text-primary">{filteredClasses.length}</strong> lớp học tuyển sinh
             </span>
           </div>
         </div>
@@ -75,54 +75,56 @@ export const ClassManager: React.FC = () => {
 
       {/* Class Cards Grid */}
       {filteredClasses.length > 0 ? (
-        <div className="class-grid">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {filteredClasses.map((cls) => (
-            <div key={cls.code} className="glass-card class-card">
-              <div className="class-header-title">{cls.code}</div>
-              <div className="class-dept">{cls.department}</div>
+            <div key={cls.code} className="p-6 rounded-2xl bg-card-bg backdrop-blur-[20px] border border-card-border shadow-md hover:bg-card-hover-bg hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between">
+              <div>
+                <div className="text-lg font-extrabold text-text-primary font-title mb-0.5">{cls.code}</div>
+                <div className="text-xs text-text-secondary font-semibold">{cls.department}</div>
+              </div>
 
-              <div className="class-stats">
-                <div className="class-stat-box">
-                  <div className="class-stat-val" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Users size={16} style={{ color: 'var(--primary)' }} />
+              <div className="grid grid-cols-3 gap-2 mt-5 pt-4 border-t border-border-color">
+                <div className="flex flex-col items-center justify-center p-2 rounded-xl bg-input-bg/30 text-center">
+                  <div className="text-xs sm:text-sm font-extrabold text-text-primary flex items-center gap-1">
+                    <Users size={14} className="text-primary" />
                     {cls.studentCount}
                   </div>
-                  <div className="class-stat-lbl">Sinh viên</div>
+                  <div className="text-[9px] sm:text-[10px] text-text-muted mt-1 font-bold truncate w-full">Sinh viên</div>
                 </div>
 
-                <div className="class-stat-box">
-                  <div className="class-stat-val" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <GraduationCap size={16} style={{ color: 'var(--secondary)' }} />
+                <div className="flex flex-col items-center justify-center p-2 rounded-xl bg-input-bg/30 text-center">
+                  <div className="text-xs sm:text-sm font-extrabold text-text-primary flex items-center gap-1">
+                    <GraduationCap size={14} className="text-secondary" />
                     {cls.averageGpa > 0 ? cls.averageGpa.toFixed(2) : '0.00'}
                   </div>
-                  <div className="class-stat-lbl">GPA Trung bình</div>
+                  <div className="text-[9px] sm:text-[10px] text-text-muted mt-1 font-bold truncate w-full">GPA TB</div>
                 </div>
 
-                <div className="class-stat-box">
-                  <div className="class-stat-val" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Award size={16} style={{ color: '#fbbf24' }} />
+                <div className="flex flex-col items-center justify-center p-2 rounded-xl bg-input-bg/30 text-center">
+                  <div className="text-xs sm:text-sm font-extrabold text-text-primary flex items-center gap-1">
+                    <Award size={14} className="text-[#fbbf24]" />
                     {cls.excellentCount}
                   </div>
-                  <div className="class-stat-lbl">Học sinh giỏi</div>
+                  <div className="text-[9px] sm:text-[10px] text-text-muted mt-1 font-bold truncate w-full">Học sinh giỏi</div>
                 </div>
               </div>
             </div>
           ))}
         </div>
       ) : (
-        <div className="glass-card">
-          <div className="empty-state">
-            <School size={48} className="empty-state-icon" />
-            <h4 className="empty-state-title">Không tìm thấy lớp học nào</h4>
-            <p className="empty-state-desc">Hãy thử điều chỉnh từ khóa tìm kiếm của bạn.</p>
+        <div className="p-6 rounded-2xl bg-card-bg backdrop-blur-[20px] border border-card-border shadow-md flex items-center justify-center py-12">
+          <div className="flex flex-col items-center justify-center text-center gap-3">
+            <School size={48} className="text-text-muted opacity-40 animate-pulse" />
+            <h4 className="font-title font-bold text-base text-text-primary">Không tìm thấy lớp học nào</h4>
+            <p className="text-xs text-text-secondary">Hãy thử điều chỉnh từ khóa tìm kiếm của bạn.</p>
           </div>
         </div>
       )}
 
       {/* Summary report info */}
-      <div className="glass-card" style={{ background: 'var(--accent-gradient)', color: 'white', border: 'none' }}>
-        <h3 style={{ color: 'white', fontSize: '18px', fontWeight: 700, marginBottom: '8px' }}>Chính sách Đào tạo khóa mới</h3>
-        <p style={{ opacity: 0.9, fontSize: '14px', lineHeight: '1.6' }}>
+      <div className="p-6 rounded-2xl bg-accent-gradient text-white shadow-md flex flex-col gap-2 border-none">
+        <h3 className="text-white text-base sm:text-lg font-bold font-title">Chính sách Đào tạo khóa mới</h3>
+        <p className="opacity-90 text-xs sm:text-sm leading-relaxed">
           Tất cả các lớp học K15 và K16 đang áp dụng khung đào tạo chuẩn mới theo định dạng tín chỉ châu Âu (ECTS).
           Điểm GPA trung bình toàn lớp được cập nhật tự động khi có bất kỳ thay đổi nào về điểm số môn học của sinh viên trong hệ thống.
         </p>
