@@ -1,0 +1,15 @@
+/* Clean CSS Reset to override default Vite template styling */
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-height: 100vh;
+  border: none !important;
+  text-align: left !important;
+  box-sizing: border-box;
+}
+
+body {
+  overflow-x: hidden;
+}
