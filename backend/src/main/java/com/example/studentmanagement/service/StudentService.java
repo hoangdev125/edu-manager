@@ -4,7 +4,6 @@ import com.example.studentmanagement.dto.DashboardStats;
 import com.example.studentmanagement.exception.NotFoundException;
 import com.example.studentmanagement.model.ActivityLog;
 import com.example.studentmanagement.model.Student;
-import com.example.studentmanagement.model.Subject;
 import com.example.studentmanagement.repository.StudentRepository;
 import com.example.studentmanagement.repository.SubjectRepository;
 import org.springframework.stereotype.Service;
@@ -50,8 +49,7 @@ public class StudentService {
             student.getActivities().add(new ActivityLog(
                     "act-" + System.currentTimeMillis(),
                     "Them moi sinh vien vao he thong",
-                    Instant.now().toString()
-            ));
+                    Instant.now().toString()));
         }
         calculateGpa(student);
         return studentRepository.save(student);
@@ -66,8 +64,7 @@ public class StudentService {
         updatedStudent.getActivities().add(0, new ActivityLog(
                 "act-" + System.currentTimeMillis(),
                 action,
-                Instant.now().toString()
-        ));
+                Instant.now().toString()));
 
         calculateGpa(updatedStudent);
         return studentRepository.save(updatedStudent);
@@ -100,11 +97,16 @@ public class StudentService {
 
     private String buildUpdateAction(Student existing, Student updatedStudent) {
         List<String> changes = new java.util.ArrayList<>();
-        if (!Objects.equals(existing.getName(), updatedStudent.getName())) changes.add("Ho ten");
-        if (existing.getGpa() != updatedStudent.getGpa()) changes.add("Diem GPA");
-        if (!Objects.equals(existing.getStatus(), updatedStudent.getStatus())) changes.add("Trang thai");
-        if (!Objects.equals(existing.getClassName(), updatedStudent.getClassName())) changes.add("Lop");
-        if (!Objects.equals(existing.getDepartment(), updatedStudent.getDepartment())) changes.add("Khoa");
+        if (!Objects.equals(existing.getName(), updatedStudent.getName()))
+            changes.add("Ho ten");
+        if (existing.getGpa() != updatedStudent.getGpa())
+            changes.add("Diem GPA");
+        if (!Objects.equals(existing.getStatus(), updatedStudent.getStatus()))
+            changes.add("Trang thai");
+        if (!Objects.equals(existing.getClassName(), updatedStudent.getClassName()))
+            changes.add("Lop");
+        if (!Objects.equals(existing.getDepartment(), updatedStudent.getDepartment()))
+            changes.add("Khoa");
 
         return changes.isEmpty()
                 ? "Cap nhat thong tin sinh vien"
@@ -126,7 +128,7 @@ public class StudentService {
 
         for (var grade : student.getGrades()) {
             grade.calculateScore(); // Re-calculate dynamic score
-            
+
             // Tra cứu số tín chỉ môn học trong bảng Subject
             int credits = 3; // Mặc định là 3 nếu không tìm thấy
             var subjectOpt = subjectRepository.findByCodeIgnoreCase(grade.getSubjectCode());
@@ -144,13 +146,20 @@ public class StudentService {
     }
 
     private double convertTo4Scale(double score10) {
-        if (score10 >= 9.0) return 4.0;
-        if (score10 >= 8.0) return 3.5;
-        if (score10 >= 7.0) return 3.0;
-        if (score10 >= 6.5) return 2.5;
-        if (score10 >= 5.5) return 2.0;
-        if (score10 >= 5.0) return 1.5;
-        if (score10 >= 4.0) return 1.0;
+        if (score10 >= 9.0)
+            return 4.0;
+        if (score10 >= 8.0)
+            return 3.5;
+        if (score10 >= 7.0)
+            return 3.0;
+        if (score10 >= 6.5)
+            return 2.5;
+        if (score10 >= 5.5)
+            return 2.0;
+        if (score10 >= 5.0)
+            return 1.5;
+        if (score10 >= 4.0)
+            return 1.0;
         return 0.0;
     }
 }

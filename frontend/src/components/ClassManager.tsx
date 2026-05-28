@@ -784,7 +784,11 @@ export const ClassManager: React.FC = () => {
                     <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 max-[768px]:opacity-100 shrink-0">
                       <button
                         onClick={() =>
-                          startEditDepartment({ id: item.id, name: item.name })
+                          startEditDepartment({
+                            id: item.id,
+                            name: item.name,
+                            admissionCode: "",
+                          })
                         }
                         className="p-2 rounded-lg bg-bg-secondary text-text-secondary hover:text-primary hover:bg-input-bg transition-colors duration-200 cursor-pointer border border-border-color"
                         title="Chỉnh sửa khoa"
