@@ -7,11 +7,6 @@ import type {
   SchoolClassOption,
   SubjectOption,
 } from "../types/student";
-import {
-  classes as fallbackClasses,
-  departments as fallbackDepartments,
-  initialStudents,
-} from "../mockData";
 import { academicApi, studentApi, subjectApi } from "../api";
 
 interface StudentContextType {
@@ -31,7 +26,11 @@ interface StudentContextType {
     code: string,
     departmentName: string,
   ) => Promise<SchoolClassOption>;
-  updateDepartment: (id: number, name: string) => Promise<DepartmentOption>;
+  updateDepartment: (
+    id: number,
+    name: string,
+    admissionCode: string,
+  ) => Promise<DepartmentOption>;
   deleteDepartment: (id: number) => Promise<void>;
   updateClass: (
     id: number,
@@ -57,100 +56,12 @@ interface StudentContextType {
 
 const StudentContext = createContext<StudentContextType | undefined>(undefined);
 
-const getFallbackDepartmentForClass = (code: string) => {
-  if (code.startsWith("CNTT")) return fallbackDepartments[0] ?? "";
-  if (code.startsWith("KTDN")) return fallbackDepartments[1] ?? "";
-  if (code.startsWith("DTVT")) return fallbackDepartments[2] ?? "";
-  if (code.startsWith("NNA")) return fallbackDepartments[3] ?? "";
-  return fallbackDepartments[0] ?? "";
-};
-
 export const StudentProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const migrateStudentGrades = (student: any): Student => {
-    if (
-      student.grades &&
-      student.grades.length > 0 &&
-      "subjectCode" in student.grades[0]
-    ) {
-      return student as Student;
-    }
-
-    const mappedGrades = (student.grades || []).map((g: any) => {
-      let code = "INT1306";
-      const name = g.subject || g.subjectName || "";
-      if (name.includes("đối tượng")) code = "INT1306";
-      else if (name.includes("Cấu trúc dữ liệu")) code = "INT1339";
-      else if (name.includes("Cơ sở dữ liệu")) code = "INT1342";
-      else if (name.includes("Toán rời rạc")) code = "MAT1101";
-      else if (name.includes("Mạng máy tính")) code = "INT1335";
-      else if (name.includes("Kinh tế vĩ mô")) code = "ECO1001";
-      else if (name.includes("Kinh tế vi mô")) code = "ECO1002";
-      else if (name.includes("Marketing")) code = "MKT2001";
-      else if (name.includes("Thương mại quốc tế")) code = "ECO2004";
-      else if (name.includes("Tiếng Anh thương mại")) code = "ENG2001";
-      else if (name.includes("Kỹ thuật điện")) code = "ECE1001";
-      else if (name.includes("Xử lý tín hiệu")) code = "ECE2002";
-      else if (name.includes("Vi điều khiển")) code = "ECE2003";
-      else if (name.includes("Điện tử số")) code = "ECE2004";
-      else if (name.includes("Lý thuyết mạch")) code = "ECE1002";
-      else if (name.includes("Biên dịch")) code = "ENG3001";
-      else if (name.includes("Phiên dịch")) code = "ENG3002";
-      else if (name.includes("Văn học")) code = "ENG3003";
-      else if (name.includes("thuyết trình")) code = "ENG1005";
-      else if (name.includes("Ngữ pháp")) code = "ENG2005";
-      else if (name.includes("Khóa luận")) code = "THE4001";
-      else if (name.includes("Tin học cơ sở")) code = "INT1101";
-      else if (name.includes("Nhập môn lập trình")) code = "INT1201";
-      else if (name.includes("tuyến tính")) code = "MAT1102";
-      else if (name.includes("Giải tích")) code = "MAT1103";
-      else if (name.includes("Triết học")) code = "PHI1001";
-      else if (name.includes("pháp luật")) code = "LAW1001";
-      else if (name.includes("Toán cao cấp")) code = "MAT1104";
-      else if (name.includes("Quản trị học")) code = "MGT1001";
-
-      const score = typeof g.score === "number" ? g.score : 8.0;
-      return {
-        subjectCode: code,
-        subjectName: name,
-        semester: g.semester || "Học kỳ I - 2025-2026",
-        attendanceScore: score,
-        midtermScore: score,
-        finalScore: score,
-        attendanceWeight: 10,
-        midtermWeight: 30,
-        finalWeight: 60,
-        score: score,
-      };
-    });
-
-    return {
-      ...student,
-      conductScore: student.conductScore || 85,
-      grades: mappedGrades,
-    } as Student;
-  };
-
-  const [students, setStudents] = useState<Student[]>(() => {
-    const saved = localStorage.getItem("students");
-    const parsed = saved ? JSON.parse(saved) : initialStudents;
-    return parsed.map(migrateStudentGrades);
-  });
-  const [departments, setDepartments] = useState<DepartmentOption[]>(
-    fallbackDepartments.map((name, index) => ({
-      id: index + 1,
-      name,
-      admissionCode: "",
-    })),
-  );
-  const [classes, setClasses] = useState<SchoolClassOption[]>(
-    fallbackClasses.map((code, index) => ({
-      id: index + 1,
-      code,
-      departmentName: getFallbackDepartmentForClass(code),
-    })),
-  );
+  const [students, setStudents] = useState<Student[]>([]);
+  const [departments, setDepartments] = useState<DepartmentOption[]>([]);
+  const [classes, setClasses] = useState<SchoolClassOption[]>([]);
   const [subjects, setSubjects] = useState<SubjectOption[]>([]);
 
   const [theme, setTheme] = useState<Theme>(() => {
@@ -275,10 +186,18 @@ export const StudentProvider: React.FC<{ children: React.ReactNode }> = ({
     return newClass;
   };
 
-  const updateDepartment = async (id: number, name: string) => {
+  const updateDepartment = async (
+    id: number,
+    name: string,
+    admissionCode: string,
+  ) => {
     const oldDept = departments.find((d) => d.id === id);
     const oldName = oldDept ? oldDept.name : "";
-    const updatedDept = await academicApi.updateDepartment(id, name);
+    const updatedDept = await academicApi.updateDepartment(
+      id,
+      name,
+      admissionCode,
+    );
     setDepartments((prev) =>
       prev
         .map((d) => (d.id === id ? updatedDept : d))

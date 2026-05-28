@@ -62,6 +62,7 @@ export const ClassManager: React.FC = () => {
   const [editingDepartment, setEditingDepartment] =
     useState<DepartmentOption | null>(null);
   const [editDeptName, setEditDeptName] = useState("");
+  const [editAdmissionCode, setEditAdmissionCode] = useState("");
 
   const [editingClass, setEditingClass] = useState<SchoolClassOption | null>(
     null,
@@ -303,6 +304,7 @@ export const ClassManager: React.FC = () => {
   const startEditDepartment = (dept: DepartmentOption) => {
     setEditingDepartment(dept);
     setEditDeptName(dept.name);
+    setEditAdmissionCode(dept.admissionCode);
     clearMessages();
   };
 
@@ -312,18 +314,20 @@ export const ClassManager: React.FC = () => {
     if (!editingDepartment) return;
 
     const name = editDeptName.trim();
-    if (!name) {
-      setError("Tên khoa không được để trống.");
+    const admissionCode = editAdmissionCode.trim();
+    if (!name || !admissionCode) {
+      setError("Tên khoa và mã tuyển sinh không được để trống.");
       return;
     }
 
     try {
-      await updateDepartment(editingDepartment.id, name);
+      await updateDepartment(editingDepartment.id, name, admissionCode);
       setEditingDepartment(null);
       setMessage("Đã cập nhật thông tin khoa thành công.");
     } catch (err: any) {
       setError(
-        err?.message || "Lỗi khi cập nhật khoa. Tên khoa có thể đã trùng.",
+        err?.message ||
+          "Lỗi khi cập nhật khoa. Tên khoa hoặc mã tuyển sinh có thể đã trùng.",
       );
     }
   };
@@ -993,6 +997,17 @@ export const ClassManager: React.FC = () => {
                   placeholder="Ví dụ: Công nghệ thông tin"
                   className="h-12 px-4 rounded-xl border border-border-color bg-input-bg text-text-primary text-sm focus:outline-none focus:border-input-focus-border focus:bg-bg-secondary w-full"
                   autoFocus
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-text-secondary">
+                  Mã tuyển sinh
+                </label>
+                <input
+                  value={editAdmissionCode}
+                  onChange={(e) => setEditAdmissionCode(e.target.value)}
+                  placeholder="Ví dụ: CNTT01"
+                  className="h-12 px-4 rounded-xl border border-border-color bg-input-bg text-text-primary text-sm uppercase focus:outline-none focus:border-input-focus-border focus:bg-bg-secondary w-full"
                 />
               </div>
               <div className="flex gap-3 justify-end mt-2">
